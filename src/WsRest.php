@@ -1,14 +1,26 @@
 <?php namespace Kgrzelak\Cashbill;
 
-class WsRest extends Components {
+class WsRest extends WsRestAbstract {
 
     const URL = 'https://pay.cashbill.pl/ws/rest/';
     const TESTURL = 'https://pay.cashbill.pl/testws/rest/';
 
-    public $components;
+    public Components $components;
 
-    protected $channelId;
-    protected $channelKey;
+    protected string $channelId;
+    protected string $channelKey;
+
+    protected string $payment_title;
+    protected float $payment_amount;
+    protected ?string $payment_description = null;
+    protected string $payment_amountCurrency = 'PLN';
+    protected ?string $payment_additionalData = null;
+    protected ?array $payment_personal = null;
+    protected ?string $payment_returnUrl = null;
+    protected ?string $payment_negativeReturnUrl = null;
+    protected ?string $payment_paymentChannel = null;
+    protected string $payment_languageCode = 'PLN';
+    protected ?string $payment_referer= NULL;
 
     public function __construct(string $channelId, string $channelKey, bool $test = false) {
 
@@ -19,35 +31,23 @@ class WsRest extends Components {
 
     }
 
-    public function newPayment(
-        string $title,
-        float $amountValue,
-        string $description = null,
-        string $amountCurrency = 'PLN',
-        string $additionalData = null,
-        string $returnUrl = null,
-        string $negativeReturnUrl = null,
-        int $paymentChannel = null,
-        string $languageCode = 'PL',
-        array $personal = null,
-        string $referer = null
-    ) {
-        
+    public function makePayment() {
+
         $data = [
-            'title' => $title,
-            'amount.value' => $amountValue,
-            'amount.currencyCode' => $amountCurrency,
-            'description' => $description,
-            'additionalData' => $additionalData,
-            'returnUrl' => $returnUrl,
-            'negativeReturnUrl' => $negativeReturnUrl,
-            'paymentChannel' => $paymentChannel,
-            'languageCode' => $languageCode,
-            'referer' => $referer
+            'title' => $this->payment_title,
+            'amount.value' => $this->payment_amount,
+            'amount.currencyCode' => $this->payment_amountCurrency,
+            'description' => $this->payment_description,
+            'additionalData' => $this->payment_additionalData,
+            'returnUrl' => $this->payment_returnUrl,
+            'negativeReturnUrl' => $this->payment_negativeReturnUrl,
+            'paymentChannel' => $this->payment_paymentChannel,
+            'languageCode' => $this->payment_languageCode,
+            'referer' => $this->payment_referer
         ];
 
-        if (is_array($personal)) {
-            foreach ($personal as $key => $value) {
+        if (is_array($this->payment_personal)) {
+            foreach ($this->payment_personal as $key => $value) {
                 $data['personalData.' . $key] = $value;
             }
         }
@@ -59,7 +59,7 @@ class WsRest extends Components {
     }
 
     public function setRedirect(string $paymentId, string $returnUrl, string $negativeReturnUrl) {
-        
+
         $data = [
             'returnUrl' => $returnUrl,
             'negativeReturnUrl' => $negativeReturnUrl
